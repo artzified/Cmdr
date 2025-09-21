@@ -128,31 +128,31 @@ interface Dispatcher {
   GetHistory(): Array<string>;
 }
 
-interface TypeDefinition {
+interface TypeDefinition<T = string> {
   /** Optionally overrides the user-facing name of this type in the autocomplete menu. If omitted, the registered name of this type will be used. */
   DisplayName?: string;
   /** String containing default [Prefixed Union Types](https://eryn.io/Cmdr/guide/Commands.html#prefixed-union-types) for this type. This property should omit the initial type name, so this string should begin with a prefix character, e.g. `Prefixes = "# integer ! boolean"`. */
   Prefixes?: string;
   /** Transform is an optional function that is passed two values: the raw text, and the player running the command. Then, whatever values this function returns will be passed to all other functions in the type (`Validate`, `Autocomplete`, and `Parse`). */
-  Transform?: (rawText: string, executor: Player) => unknown;
+  Transform?: (rawText: string, executor: Player) => T;
   /**
    * The `Validate` function is passed whatever is returned from the Transform function (or the raw value if there is no Transform function). If the value is valid for the type, it should return `true`. If it the value is invalid, it should return two values: false, and a string containing an error message.
    *
    * If this function isn't present, anything will be considered valid.
    */
-  Validate?: (value: unknown) => boolean | LuaTuple<[boolean, string]>;
+  Validate?: (value: T) => boolean | LuaTuple<[boolean, string]>;
   /**
    * This function works exactly the same as the normal `Validate` function, except it only runs once (after the user presses Enter). This should only be used if the validation process is relatively expensive or needs to yield. For example, the PlayerId type uses this because it needs to call `GetUserIdFromNameAsync` in order to validate.
    *
    * For the vast majority of types, you should just use `Validate` instead.
    */
-  ValidateOnce?: (value: unknown) => boolean | LuaTuple<[boolean, string]>;
+  ValidateOnce?: (value: T) => boolean | LuaTuple<[boolean, string]>;
   /** Should only be present for types that are possible to be auto completed. It should return an array of strings that will be displayed in the auto complete menu. It can also return a second value, which can be a dictionary with options such as `IsPartial` as described above. */
   Autocomplete?: (
-    value: unknown
+    value: T
   ) => Array<string> | LuaTuple<[Array<string>, { IsPartial?: boolean }]>;
   /** Parse is the only required function in a type definition. It is the final step before the value is considered finalized. This function should return the actual parsed value that will be sent to the command functions. */
-  Parse: (value: unknown) => unknown;
+  Parse: (value: T) => unknown;
   /** The `Default` function is optional and should return the "default" value for this type, as a string. For example, the default value of the `players` type is the name of the player who ran the command. */
   Default?: (player: Player) => string;
   /**
